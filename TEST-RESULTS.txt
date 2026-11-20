@@ -1,0 +1,23 @@
+✔ multi-TSurf / multi-TFACE sample closes all parts with unique IDs and preserves original geometry (140.9265ms)
+✔ unselected part is preserved while selected parts use independent parameters (66.457ms)
+✔ ATOM aliases and inward global winding close consistently without reorienting original faces (12.6175ms)
+✔ closed parts pass through byte-for-byte, including BOM and CRLF (3.9538ms)
+✔ translation to large mapping coordinates does not affect topology or taper length (9.4637ms)
+✔ PVRTX attributes copied on rings and averaged on tips (50.9264ms)
+✔ missing vertices, duplicate faces, reversed faces, branching and non-manifold edges are blocked (2.4768ms)
+✔ pinched vertex is rejected even when edges do not have more than two faces (0.2254ms)
+✔ one or three boundary loops and disconnected geometry are not auto-capped (1.5427ms)
+✔ invalid taper parameters and malformed TSurf are rejected explicitly (1.2653ms)
+✔ implicit TFACE and unknown metadata export safely (3.079ms)
+✔ dragged tips control ring direction and survive validated export without modifying the body (94.3123ms)
+✔ invalid or inward dragged tip is blocked and fast preview matches the validated geometry (3.0548ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 495.4725
+
+Browser acceptance v1.1: processing report and download entry removed; A and B tips dragged with actual mouse input; lengths updated; topology valid after release; Part switching preserved positions; browser export parsed back as three closed Parts and exact dragged tip lengths confirmed. No console errors.

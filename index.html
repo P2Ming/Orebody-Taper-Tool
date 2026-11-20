@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Orebody Taper Tool · 矿体自动尖灭</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true"><defs>
+    <symbol id="i-logo" viewBox="0 0 32 32"><path d="M16 2 29 9v14l-13 7L3 23V9Z M3 9l13 7 13-7 M16 16v14 M9 6l13 7v7l-6 3-7-4v-6l7-4"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 17v4h16v-4"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7Zm0 10L3 7m9 5 9-5m-9 5v10"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 3v6m0 4v8M12 3v12m0 4v2M20 3v2m0 4v12M1 9h6m2 10h6m2-14h6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M8 8h8v8H8Z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v7m0-11v1"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7l-5-5Zm0 0v6h5M8 13h8m-8 4h6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><path d="M3 3h18v18H3Zm6 0v18m6-18v18M3 9h18M3 15h18"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 4 3c-1 0-1 1-1 2m0 3v1"/></symbol>
+  </defs></svg>
+  <aside class="rail">
+    <div class="brand-mark"><svg><use href="#i-logo"/></svg></div>
+    <span class="rail-divider"></span>
+    <button class="rail-button active" title="模型工作台" aria-label="模型工作台"><svg><use href="#i-cube"/></svg></button>
+    <button class="rail-button" id="railSettings" title="尖灭参数" aria-label="尖灭参数"><svg><use href="#i-sliders"/></svg></button>
+    <div class="rail-bottom"><button class="rail-button" id="helpButton" title="使用说明" aria-label="使用说明"><svg><use href="#i-help"/></svg></button><span class="avatar">OT</span></div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="wordmark">OREBODY<span class="wordmark-tag">TAPER TOOL</span></div>
+      <div class="topbar-right"><span class="local-badge"><i></i> 本地处理 · 数据不上传</span><span class="version">v1.1</span></div>
+    </header>
+    <main>
+      <section class="page-heading"><div><div class="eyebrow">GEOLOGICAL MODELING / 地质建模</div><h1>矿体自动尖灭<span class="heading-dot">.</span></h1><p>从开放端到完整矿体，让网格自然收束。</p></div><button class="button button-primary" id="exportButton" disabled><svg><use href="#i-download"/></svg>导出 TSurf<span id="exportCount" class="button-count">0</span></button></section>
+      <div class="workspace">
+        <aside class="control-panel">
+          <section class="panel-section import-section">
+            <div class="section-title"><span class="step">01</span><h2>导入模型</h2><span class="format-tag">.TS</span></div>
+            <input type="file" id="fileInput" accept=".ts,.TS,.tsurf" hidden>
+            <button class="dropzone" id="dropzone"><span class="upload-circle"><svg><use href="#i-upload"/></svg></span><strong>拖入 GOCAD TSurf 文件</strong><span>或点击选择文件 · 支持多个 Part</span></button>
+            <div class="file-card hidden" id="fileCard"><span class="file-icon"><svg><use href="#i-file"/></svg></span><div><strong id="fileName"></strong><span id="fileMeta"></span></div><button id="replaceFile" title="替换文件">更换</button></div>
+            <button class="demo-button" id="demoButton">没有文件？试用示例模型 <svg><use href="#i-arrow"/></svg></button>
+          </section>
+          <section class="panel-section model-section">
+            <div class="section-title"><span class="step">02</span><h2>选择矿体</h2><span class="small-count" id="partCount">0 PARTS</span></div>
+            <label class="field-label" for="partSelect">当前模型 / Part</label><div class="select-wrap"><select id="partSelect" disabled><option>请先导入模型</option></select></div>
+            <div class="model-summary"><span><i class="dot teal"></i> <span id="partStatus">等待导入</span></span><span id="endCount">—</span></div>
+            <label class="check-row"><input id="includePart" type="checkbox" disabled><span>将此 Part 加入批量尖灭</span><span class="check-extra" id="selectedCount">0 已选</span></label>
+          </section>
+          <section class="panel-section parameters-section" id="parameterSection">
+            <div class="section-title"><span class="step">03</span><h2>尖灭参数</h2><button class="text-button" id="resetParams" disabled>重置</button></div>
+            <div class="field-heading"><label class="field-label" for="lengthA">端部延伸长度</label><span class="unit-label" id="lengthUnit">原始坐标单位</span></div>
+            <div class="length-fields"><label><span class="end-dot a">A</span><input id="lengthA" type="number" min="0.000001" step="any" value="50" disabled></label><label><span class="end-dot b">B</span><input id="lengthB" type="number" min="0.000001" step="any" value="50" disabled></label></div>
+            <div class="field-heading spaced"><label class="field-label" for="rings">渐缩环数量</label><output id="ringsValue">8 <span>环</span></output></div><input id="rings" type="range" min="1" max="64" step="1" value="8" disabled><div class="range-labels"><span>1</span><span>精细度</span><span>64</span></div>
+            <div class="field-heading spaced"><label class="field-label" for="exponent">渐缩指数</label><output id="exponentValue">1.25</output></div><input id="exponent" type="range" min="0.2" max="5" step="0.05" value="1.25" disabled><div class="range-labels"><span>0.2</span><span>r(t) = (1 − t)<sup>p</sup></span><span>5.0</span></div>
+            <div class="taper-curve"><svg viewBox="0 0 280 50" preserveAspectRatio="none"><path class="curve-grid" d="M0 25H280 M70 0V50 M140 0V50 M210 0V50"/><path id="curvePath" d="M0 4 280 25 0 46Z"/></svg><span>原始断面</span><span>尖端</span></div>
+            <button class="button button-apply" id="applyButton" disabled><svg><use href="#i-check"/></svg>生成尖灭预览</button>
+            <div class="params-note"><svg><use href="#i-info"/></svg><span>参数按 Part 独立保存，原始主体网格完整保留。</span></div>
+          </section>
+          <div class="panel-footer"><span class="footer-dot"></span> GOCAD TSurf compatible</div>
+        </aside>
+        <section class="main-panel">
+          <div class="viewer-card">
+            <div class="viewer-header"><div class="viewer-title"><svg><use href="#i-cube"/></svg><h2>三维工作视图</h2><span id="viewModeLabel">LIVE PREVIEW</span></div><div class="view-switch" role="group" aria-label="预览模式"><button id="originalView">原始</button><button id="resultView" class="active">尖灭结果</button></div></div>
+            <div class="viewport" id="viewport">
+              <div class="viewer-empty" id="emptyState"><div class="empty-orbit"><svg><use href="#i-logo"/></svg></div><h3>模型，将在这里延展。</h3><p>导入 .ts 文件，自动识别开放端并生成尖灭预览</p><button id="emptyDemo" class="text-button">探索示例模型 →</button></div>
+              <div class="viewport-top"><div class="viewport-chips"><span class="viewport-chip" id="objectChip">NO MODEL</span><span class="viewport-chip hidden" id="statusChip"><i></i>已闭合</span></div><div class="viewer-tools"><button id="fitView" title="适配视图 (F)" aria-label="适配视图"><svg><use href="#i-fit"/></svg></button><button id="toggleWire" class="active" title="切换网格线" aria-label="切换网格线" aria-pressed="true"><svg><use href="#i-grid"/></svg></button><button id="toggleAll" title="显示全部 Part" aria-label="显示全部 Part" aria-pressed="false"><svg><use href="#i-cube"/></svg></button></div></div>
+              <button type="button" class="end-label a hidden" id="endLabelA" aria-label="拖动 A 端尖点" title="拖动改变 A 端尖点，实时生成网格；Esc 取消"><b>A</b><span>拖动调整尖端</span></button><button type="button" class="end-label b hidden" id="endLabelB" aria-label="拖动 B 端尖点" title="拖动改变 B 端尖点，实时生成网格；Esc 取消"><b>B</b><span>拖动调整尖端</span></button>
+              <div class="drag-hint" id="dragHint">拖动 A / B 尖点 · 实时塑形</div>
+              <div class="viewport-bottom"><div class="legend"><span><i class="legend-body"></i>原始主体</span><span><i class="legend-cap"></i>新增尖灭网格</span></div><div class="axis-key"><span class="axis-z">Z</span><span class="axis-y">Y</span><span class="axis-x">X</span><svg viewBox="0 0 58 55"><path stroke="#d96966" d="m27 29 25 11"/><path stroke="#73a486" d="m27 29-23 11"/><path stroke="#688caf" d="M27 29V3"/><circle cx="27" cy="29" r="3" fill="#738492"/></svg></div></div>
+              <div class="busy-overlay hidden" id="busyOverlay"><span class="spinner"></span><strong id="busyText">正在处理网格…</strong></div>
+            </div>
+            <div class="viewer-footer"><span><span class="mouse-icon"></span>拖端点塑形<span class="footer-sep">·</span>空白处旋转<span class="footer-sep">·</span>滚轮缩放</span><span id="meshCount">— VERTICES / — FACES</span></div>
+          </div>
+          <div class="metrics-grid">
+            <article class="metric"><div class="metric-label">开放端识别<span>BOUNDARIES</span></div><div class="metric-value" id="boundaryMetric">— <small>个开放端</small></div><div class="metric-foot" id="boundaryFoot">等待网格分析</div></article>
+            <article class="metric"><div class="metric-label">新增渐缩网格<span>GENERATED</span></div><div class="metric-value" id="generatedMetric">— <small>个三角形</small></div><div class="metric-foot" id="generatedFoot">保留全部原始主体网格</div></article>
+            <article class="metric"><div class="metric-label">封闭与拓扑<span>VALIDATION</span></div><div class="metric-value status-value" id="topologyMetric"><span class="status-icon">○</span> 待检查</div><div class="metric-foot" id="topologyFoot">边界 · 流形 · 绕序 · 退化面</div></article>
+          </div>
+          <div class="workspace-note"><svg><use href="#i-info"/></svg><span>仅在原始边界追加网格。导出为新文件，保留文件内所有模型与 Part。</span><span class="note-right">PRECISION IN EVERY SURFACE</span></div>
+        </section>
+      </div>
+    </main>
+    <footer class="app-footer"><span>Orebody Taper Tool<span class="footer-sep">/</span>为地质建模而设计</span><span>LOCAL WORKSPACE<span class="footer-dot"></span>OFFLINE READY</span></footer>
+  </div>
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+  <dialog id="helpDialog"><div class="dialog-heading"><h2>使用指南</h2><button id="closeHelp" aria-label="关闭">×</button></div><ol><li>导入 GOCAD <b>.ts</b> 文件，或打开内置合成示例。</li><li>下拉切换 TSurf / TFACE；系统自动识别各 Part 的两个开放端。</li><li>直接用鼠标拖动 A / B 尖点，实时改变延伸长度和方向。沿当前视图平面拖动，旋转视角后可从不同方向调整；松开自动检查拓扑，Esc 取消本次拖动。也可输入长度、环数与指数后点击生成。长度使用原坐标单位。</li><li>勾选需要尖灭的 Part；未选 Part 在导出文件中原样保留。每个 Part 的参数独立保存。</li><li>查看拓扑检查结果，导出 <b>_tapered.ts</b> 新文件。文件始终在本地浏览器处理。</li></ol><div class="help-note"><b>适用条件</b><p>每个处理 Part 必须是一个连通、绕序一致的流形侧面，恰好有两个简单边界环。已闭合 Part 可直接保留。异常网格需先修复。</p><b>几何边界</b><p>算法按端部邻域的中心线方向外推。尖灭后检查边、顶点流形性及 Euler 特征；拓扑通过不等于无自交。极弯曲、凹形或邻近矿体需结合三维预览人工检查。界面不执行几何自交或碰撞检查。</p><b>属性与精度</b><p>保留原始行、坐标系、VRTX / PVRTX、ATOM 与原主体网格。新增环复制对应边界点属性；尖端使用有效属性均值（缺失时用 NO_DATA）。按原文件 ZPOSITIVE 显示高程 / 深度；不执行坐标或单位转换。UTF-8 文件可直接导入，传统中文编码请选择 GB18030。</p></div><label class="encoding-label">下次导入编码<select id="encodingSelect"><option value="utf-8">UTF-8</option><option value="gb18030">GB18030 / GBK</option></select></label></dialog>
+  <script type="module" src="app.mjs"></script>
+</body>
+</html>
